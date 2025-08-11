@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Multi-Language Translator</title>
+<style>
+    /* Overall page styling */
+    body {
+        font-family: 'Segoe UI', sans-serif;
+        background: #eef2f3;
+        margin: 0;
+        padding: 20px;
+    }
+
+    h1 {
+        text-align: center;
+        color: #222;
+        margin-bottom: 20px;
+    }
+
+    .translator-container {
+        max-width: 600px;
+        background: #fff;
+        margin: auto;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        animation: fadeIn 0.4s ease-in;
+    }
+
+    textarea, select, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+
+    button {
+        background-color: #4a90e2;
+        color: #fff;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    button:hover {
+        background-color: #357ab8;
+    }
+
+    .result-box {
+        background: #f7f7f7;
+        border: 1px solid #ccc;
+        min-height: 50px;
+        padding: 10px;
+        border-radius: 6px;
+        word-wrap: break-word;
+    }
+
+    .actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+
+<h1>🌍 Multi-Language Translator</h1>
+
+<div class="translator-container">
+    <!-- User input area -->
+    <label for="userText">Enter text to translate:</label>
+    <textarea id="userText" rows="4" placeholder="Type something..."></textarea>
+
+    <!-- Language selectors -->
+    <label for="fromLang">From language:</label>
+    <select id="fromLang">
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="hi">Hindi</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+    </select>
+
+    <label for="toLang">To language:</label>
+    <select id="toLang">
+        <option value="hi">Hindi</option>
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        <option value="es">Spanish</option>
+        <option value="de">German</option>
+    </select>
+
+    <!-- Translate button -->
+    <button id="translateBtn">Translate</button>
+
+    <!-- Result display -->
+    <h3>Translation:</h3>
+    <div id="translatedOutput" class="result-box">Your translated text will appear here...</div>
+
+    <!-- Extra features -->
+    <div class="actions">
+        <button id="copyBtn">📋 Copy</button>
+        <button id="speakBtn">🔊 Speak</button>
+    </div>
+</div>
+
+<script>
+    // Assign elements to variables with custom names
+    const inputField = document.getElementById('userText');
+    const sourceLang = document.getElementById('fromLang');
+    const targetLang = document.getElementById('toLang');
+    const translateButton = document.getElementById('translateBtn');
+    const outputArea = document.getElementById('translatedOutput');
+    const copyButton = document.getElementById('copyBtn');
+    const speakButton = document.getElementById('speakBtn');
+
+    // Event listener for translation
+    translateButton.addEventListener('click', async () => {
+        let textToTranslate = inputField.value.trim();
+        if (!textToTranslate) {
+            alert("Please type some text first.");
+            return;
+        }
+
+        // Show loading status
+        outputArea.textContent = "Translating... Please wait.";
+
+        try {
+            // API call to LibreTranslate (Free API)
+            let response = await fetch("https://libretranslate.de/translate", {
+                method: "POST",
+                body: JSON.stringify({
+                    q: textToTranslate,
+                    source: sourceLang.value,
+                    target: targetLang.value,
+                    format: "text"
+                }),
+                headers: { "Content-Type": "application/json" }
+            });
+
+            let data = await response.json();
+            outputArea.textContent = data.translatedText;
+        } catch (error) {
+            outputArea.textContent = "⚠️ Error: Could not fetch translation.";
+        }
+    });
+
+    // Copy to clipboard function
+    copyButton.addEventListener('click', () => {
+        let translated = outputArea.textContent;
+        if (translated && translated !== "Your translated text will appear here...") {
+            navigator.clipboard.writeText(translated);
+            alert("Copied to clipboard!");
+        }
+    });
+
+    // Text-to-speech function
+    speakButton.addEventListener('click', () => {
+        let translated = outputArea.textContent;
+        if (translated && translated !== "Your translated text will appear here...") {
+            let utterance = new SpeechSynthesisUtterance(translated);
+            utterance.lang = targetLang.value;
+            window.speechSynthesis.speak(utterance);
+        }
+    });
+</script>
+
+</body>
+</html>
